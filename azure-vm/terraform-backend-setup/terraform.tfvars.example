@@ -1,0 +1,9 @@
+# Copy this file to terraform.tfvars and modify as needed
+resource_group_name = "rg-devops-practice"
+location = "southafricanorth"
+
+tags = {
+  Project     = "DevOps-Practice"
+  Environment = "Learning"
+  CostCenter  = "Student"
+}

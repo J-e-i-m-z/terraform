@@ -1,0 +1,15 @@
+# Copy this file to terraform.tfvars and modify as needed
+resource_group_name = "rg-devops-practice"
+location = "southafricanorth"
+vm_size = "Standard_B1s"
+admin_username = "jamez"
+ssh_public_key = "~/.ssh/id_rsa.pub"
+
+# SECURITY WARNING: Restrict this to your IP in production!
+allowed_ssh_ips = ["192.34.35.2"]  # Replace with your actual IP
+
+tags = {
+  Project     = "DevOps-Practice"
+  Environment = "Learning"
+  CostCenter  = "Student"
+}
