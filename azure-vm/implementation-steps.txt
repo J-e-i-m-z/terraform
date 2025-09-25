@@ -1,0 +1,80 @@
+IMPLEMENTATION STEPS
+
+BACKEND SET UP
+- variables.tf
+- terraform.tfvars.example
+- main.tf
+- outputs.tf
+  APPLYING 
+  terraform init
+  terraform validate
+  terraform plan -out plan.tfplan
+  terraform apply "plan.tfplan"
+  terraform output
+  terraform output backend_config
+    - copy output to backend.tf file in vm-setup
+
+TESTING AND VERIFYING BACKEND SET UP
+# List resources in the resource group
+az resource list --resource-group rg-devops-practice -o table
+
+# List blob containers in your new storage account
+az storage container list --account-name <your-storage-account-name> -o table
+
+VM SET UP - UBUNTU
+# Initialize with remote backend and migrate state
+   - terraform init -migrate-state
+
+- terraform.tfvars.example
+  GENERATE SSH KEY 
+    ssh-keygen -t rsa -b 4096
+    ls -l ~/.ssh/id_rsa.pub
+    cat ~/.ssh/id_rsa.pub
+  
+  GET CURRENT PUBLIC IP
+    curl ifconfig.me
+
+- cp terraform.tfvars.example terraform.tfvars
+
+- terraform-ubuntu-vm/variables.tf
+
+- terraform-ubuntu-vm/modules/network/variables.tf
+- terraform-ubuntu-vm/modules/network/main.tf
+- terraform-ubuntu-vm/modules/network/outputs.tf
+
+- terraform-ubuntu-vm/modules/vm/variables.tf
+- terraform-ubuntu-vm/modules/vm/main.tf
+- terraform-ubuntu-vm/modules/vm/outputs.tf
+
+- terraform-ubuntu-vm/main.tf
+- terraform-ubuntu-vm/outputs.tf
+
+Validate and format 
+- terraform fmt -recursive # formats all files
+- terraform init
+- terraform validate
+
+Plan & apply the network module first
+- terraform plan -target=module.network -out plan-net.tfplan
+- terraform apply "plan-net.tfplan"
+
+Plan & apply the vm module
+- terraform plan -target=module.vm -out plan-vm.tfplan
+- terraform apply "plan-vm.tfplan"
+
+COST SAVING 
+- terraform destroy -auto-approve
+- az vm deallocate --resource-group <RESOURCE_GROUP> --name <VM_NAME>
+
+VERSION CONTROL
+- Add .gitignore  cat > .gitignore <<'EOF'  EOF 
+- git ls-files | grep -E '\.tfstate|\.tfplan|terraform\.tfvars|^.terraform' || echo "No sensitive files tracked"
+- git status 
+- git add .
+- git status
+- git commit -m "Initial commit: terraform backend + ubuntu VM modules"
+- git push -u origin main
+
+
+
+

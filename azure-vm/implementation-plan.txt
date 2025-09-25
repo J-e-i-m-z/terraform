@@ -1,0 +1,99 @@
+SETTING UP UBUNTU VM ON AZURE WITH TERRAFORM 
+
+Step-by-Step Implementation Plan 
+
+PREREQUISITES
+ Azure CLI installed and logged in:
+   - az login
+   - az account set --subscription "Azure for Students"
+
+ Check/create resource group:
+   - az group show -n rg-devops-practice
+
+ STEP 1: BOOTSRAP REMOTE BACKEND 
+   - cd terraform-backend-setup
+
+  # Initialize with local backend
+   - terraform init
+  
+  # Validate configuration
+   - terraform validate
+
+  # Plan the infrastructure
+   - terraform plan -out plan.tfplan
+
+  # Apply the plan
+   - terraform apply "plan.tfplan"
+
+  # Copy the backend configuration output
+   - terraform output
+   - terraform output backend_config
+   Expected Output: You'll see the storage account and container being created. 
+   Copy the backend configuration block for use in the VM set-up (Add it to the backend.tf file).
+
+
+ STEP 2: CONFIGURE VM PROJECT WITH REMOTE BACKEND 
+   - cd ../terraform-ubuntu-vm
+
+  # Update backend.tf with your storage account name from bootstrap output
+  # Edit backend.tf and replace "tfstate12345678" with your actual storage account name
+
+  # Initialize with remote backend and migrate state
+   - terraform init -migrate-state
+
+  # Type 'yes' when prompted to copy existing state to new backend
+
+
+ STEP 3: DEPLOY THE UBUNTU VM 
+  # Create terraform.tfvars from example
+    GENERATE SSH KEY 
+    ssh-keygen -t rsa -b 4096
+    ls -l ~/.ssh/id_rsa.pub
+    cat ~/.ssh/id_rsa.pub
+  
+  GET CURRENT PUBLIC IP
+    curl ifconfig.me
+   - cp terraform.tfvars.example terraform.tfvars
+
+  # Edit terraform.tfvars with your settings
+
+  # Plan the deployment
+   - terraform plan -out vm.plan
+
+  # Apply the deployment
+   - terraform apply "vm.plan"
+
+
+ STEP 4: TEST SSH CONNECTION 
+  # Get the public IP
+   - terraform output vm_ssh_command
+
+  # Use the output command to SSH to your VM
+
+  # Testing State Locking
+   - State locking is handled by Azure Blob leases when using the azurerm backend.
+
+  # Test Locking Behavior:
+    Terminal A:
+    - terraform apply
+      # Leave it running (don't confirm yet)
+
+    Terminal B (immediately after):
+    - terraform apply
+      
+      Expected Error in Terminal B:
+
+        Error: Error acquiring the state lock
+        Lock Info:
+          ID:        <lock-id>
+          Path:      tfstate/terraform.tfstate
+          Operation: OperationTypeApply
+          Who:       <your-user>
+          Version:   <terraform-version>
+          Created:   <timestamp>
+          Info:      backend type: azurerm
+
+   - Terraform acquires a state lock to protect the state from being written
+      by multiple users at the same time. Please resolve the issue above and try
+      again. For most commands, you can disable locking with the "-lock=false"
+      flag, but this is not recommended.
